@@ -258,16 +258,27 @@ def create_palette():
     save_user_palette_data(data, path)
     return jsonify(new_palette), 201
 
-
 @app.route("/api/palettes/<int:palette_id>/colors", methods=["POST"])
 def add_color_to_palette(palette_id):
     data, path = load_user_palette_data()
     body = request.get_json()
+
+    # 🛡️ sanitize color name so no HTML/JS can be stored
+    raw_name = body.get("name", "")
+    safe_name = (
+        raw_name.replace("<", "")
+                .replace(">", "")
+                .replace("&", "")
+                .replace("/", "")
+                .replace("script", "")
+                .strip()
+    )
+
     for p in data["palettes"]:
         if p["id"] == palette_id:
             color = {
                 "id": len(p["colors"]) + 1,
-                "name": body.get("name", "").replace("<", "").replace(">", "").replace("script", "").strip(),
+                "name": safe_name,
                 "hex": body.get("hex"),
                 "rgb": body.get("rgb"),
             }
@@ -275,18 +286,6 @@ def add_color_to_palette(palette_id):
             save_user_palette_data(data, path)
             return jsonify(color), 201
     return jsonify({"error": "Palette not found"}), 404
-
-
-@app.route("/api/palettes/<int:palette_id>/colors/<int:color_id>", methods=["DELETE"])
-def delete_color(palette_id, color_id):
-    data, path = load_user_palette_data()
-    for p in data["palettes"]:
-        if p["id"] == palette_id:
-            p["colors"] = [c for c in p["colors"] if c["id"] != color_id]
-            save_user_palette_data(data, path)
-            return jsonify({"message": "Color deleted"}), 200
-    return jsonify({"error": "Palette not found"}), 404
-
 
 @app.route("/api/palettes/<int:palette_id>", methods=["DELETE"])
 def delete_palette(palette_id):
