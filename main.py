@@ -1,8 +1,26 @@
+
 from flask import Flask, jsonify, request, send_from_directory, session
 import json, os, io, base64, csv, random, secrets, sqlite3
 from datetime import datetime
 from PIL import Image
 import colorsys
+import re
+
+# 🧼 Backend sanitizer: strips slashes, tags, URLs, and dangerous characters
+def sanitize_text(text: str) -> str:
+    if not isinstance(text, str):
+        return ""
+    # Remove HTML tags
+    clean = re.sub(r"<[^>]*>", "", text)
+    # Remove scripts or JS-like content
+    clean = re.sub(r"(script|on\w+\s*=|javascript:)", "", clean, flags=re.IGNORECASE)
+    # Remove URLs
+    clean = re.sub(r"https?://\S+|www\.\S+", "", clean)
+    # Remove forward and backslashes
+    clean = re.sub(r"[\\/]+", "", clean)
+    # Remove braces and angle brackets
+    clean = re.sub(r"[{}<>$]", "", clean)
+    return clean.strip()
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_cors import CORS
 
@@ -89,7 +107,7 @@ def save_premium(data):
 @app.route("/api/register", methods=["POST"])
 def register_user():
     data = request.get_json()
-    username = data.get("username", "").strip()
+    username = sanitize_text(data.get("username", "").strip())
     password = data.get("password", "")
     if not username or not password:
         return jsonify({"error": "Missing fields"}), 400
@@ -240,7 +258,7 @@ def get_palettes():
 def create_palette():
     data, path = load_user_palette_data()
     body = request.get_json()
-    name = body.get("name", "").strip()
+    name = sanitize_text(body.get("name", "").strip())
     if not name:
         return jsonify({"error": "Palette name required"}), 400
 
@@ -278,7 +296,7 @@ def add_color_to_palette(palette_id):
         if p["id"] == palette_id:
             color = {
                 "id": len(p["colors"]) + 1,
-                "name": safe_name,
+                "name": sanitize_text(body.get("name")),
                 "hex": body.get("hex"),
                 "rgb": body.get("rgb"),
             }
@@ -329,6 +347,9 @@ def export_grid_csv():
 # ======================================================
 # 🧩 GRID EXTRACT + MATCH + MIX (with premium flag)
 # ======================================================
+# ======================================================
+# 🧩 GRID EXTRACT + MATCH + MIX (with premium flag)
+# ======================================================
 @app.route("/api/grid/extract_match_mix", methods=["POST"])
 def extract_match_mix():
     """
@@ -339,7 +360,7 @@ def extract_match_mix():
     grid_size = int(body.get("grid_size", 40))
     palette = body.get("palette", [])
     is_premium = True
-    
+   
     if not img_b64 or not palette:
         return jsonify({"error": "Missing image or palette"}), 400
 
@@ -384,10 +405,12 @@ def extract_match_mix():
                     "ratio": round(random.uniform(10, 30), 1),
                     "hex": p["hex"]
                 })
-            cell_result["mix_colors"] = mix_data
 
+            cell_result["mix_colors"] = mix_data
             results.append(cell_result)
+
     return jsonify({"matched": results, "count": len(results)})
+
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
