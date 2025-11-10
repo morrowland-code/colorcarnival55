@@ -282,6 +282,8 @@ name = name.replace(/[<>]/g, "").replace(/script/gi, "");
   div.appendChild(btn);
 
   savedColors.appendChild(div);
+ }
+
 }
 
   paletteSelect.addEventListener("change", loadPaletteColors);
