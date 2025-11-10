@@ -318,6 +318,27 @@ def add_color_to_palette(palette_id):
             save_user_palette_data(data, path)
             return jsonify(color), 201
     return jsonify({"error": "Palette not found"}), 404
+# 🗑️ Delete a single color from a palette (persistent fix)
+@app.route("/api/palettes/<int:palette_id>/colors/<int:color_id>", methods=["DELETE"])
+def delete_color(palette_id, color_id):
+    data, path = load_user_palette_data()
+    updated = False
+
+    for p in data["palettes"]:
+        if p["id"] == palette_id:
+            before = len(p.get("colors", []))
+            # remove the color that matches this ID
+            p["colors"] = [c for c in p.get("colors", []) if c.get("id") != color_id]
+            after = len(p["colors"])
+            if before != after:
+                updated = True
+            break
+
+    if updated:
+        save_user_palette_data(data, path)
+        return jsonify({"message": "Color deleted"}), 200
+    else:
+        return jsonify({"error": "Color or palette not found"}), 404
 
 @app.route("/api/palettes/<int:palette_id>", methods=["DELETE"])
 def delete_palette(palette_id):
