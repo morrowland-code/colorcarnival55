@@ -3,7 +3,18 @@
 
 // ===================== CONFIG =====================
 const API_BASE = ""; // same-origin for Flask
-
+// 🧼 Sanitize any text input to prevent code or tags
+function sanitizeInput(text) {
+  if (typeof text !== "string") return "";
+  // remove HTML tags, script words, and encoded attempts
+  return text
+    .replace(/</g, "")
+    .replace(/>/g, "")
+    .replace(/script/gi, "")
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
 // =============== THEME HANDLER ===============
 // Save the selected theme and apply it across pages
 function applySavedTheme() {
@@ -183,9 +194,8 @@ async function initPalettePage() {
       showAlert("You must be signed in to save palettes 🍓", false);
       return;
     }
-    let name = paletteInput.value.trim();
-// 🧠 Sanitize to prevent code or tags
-name = name.replace(/[<>]/g, "").replace(/script/gi, "");
+    let name = sanitizeInput(paletteInput.value.trim());
+
     if (!name) return showAlert("Enter a palette name 💕", false);
 
     try {
@@ -418,8 +428,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Submit login or register
   authAction.addEventListener("click", async () => {
-    const username = usernameInput.value.trim();
-    const password = passwordInput.value.trim();
+    const username = sanitizeInput(usernameInput.value.trim());
+    const password = sanitizeInput(passwordInput.value.trim());
     if (!username || !password) {
       alert("Please fill both fields!");
       return;
