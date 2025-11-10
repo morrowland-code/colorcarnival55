@@ -4,7 +4,7 @@
 // ===================== CONFIG =====================
 const API_BASE = ""; // same-origin for Flask
 // 🧼 Sanitize any text input to prevent code or tags
-// 🧼 Sanitize text but keep it human-readable (no HTML entities)
+// 🧼 Sanitize text safely for all forms and palette names
 function sanitizeInput(text) {
   if (typeof text !== "string") return "";
 
@@ -14,13 +14,16 @@ function sanitizeInput(text) {
   // 2️⃣ Block "script", "javascript:", and event handlers like onerror=
   clean = clean.replace(/script|on\w+=|javascript:/gi, "");
 
-  // 3️⃣ Block URLs and domains (anything that looks like a link)
+  // 3️⃣ Block URLs and domains
   clean = clean.replace(/https?:\/\/\S+|www\.\S+/gi, "");
 
-  // 4️⃣ Strip dangerous symbols only if they're part of code-like input
+  // 4️⃣ Remove slashes to prevent path tricks
+  clean = clean.replace(/[\\/]/g, ""); // ✅ removes / and \
+
+  // 5️⃣ Remove other risky symbols
   clean = clean.replace(/[{}<>$]/g, "");
 
-  // 5️⃣ Trim whitespace
+  // 6️⃣ Trim whitespace
   return clean.trim();
 }
 // =============== THEME HANDLER ===============
