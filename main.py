@@ -250,9 +250,23 @@ def save_user_palette_data(data, path):
 
 @app.route("/api/palettes", methods=["GET"])
 def get_palettes():
-    data, _ = load_user_palette_data()
-    return jsonify(data["palettes"])
+    # Always reload latest palettes from disk (prevents deleted colors from reappearing)
+    username = session.get("username")
+    if username:
+        path = get_user_data_file(username)
+    else:
+        path = DATA_FILE
 
+    if not os.path.exists(path):
+        return jsonify([])
+
+    try:
+        with open(path, "r") as f:
+            data = json.load(f)
+    except json.JSONDecodeError:
+        data = {"palettes": []}
+
+    return jsonify(data.get("palettes", []))
 
 @app.route("/api/palettes", methods=["POST"])
 def create_palette():
