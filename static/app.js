@@ -245,7 +245,7 @@ async function initPalettePage() {
     const res = await fetchWithAuth(`/api/palettes/${id}`, { method: "DELETE" });
     if (!res.ok) return showAlert("Delete failed", false);
     showAlert("Palette deleted 🗑️", true);
-    loadPalettes(false);
+    await loadPalettes(false); // ✅ reload list after delete
   });
 
   // 🎨 Load palette colors
@@ -297,7 +297,7 @@ async function initPalettePage() {
       method: "DELETE",
     });
     showAlert("Color deleted", true);
-    loadPaletteColors();
+    await loadPalettes(false); // ✅ fully reload from backend
   });
 
   // assemble
