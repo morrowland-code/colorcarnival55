@@ -233,30 +233,56 @@ name = name.replace(/[<>]/g, "").replace(/script/gi, "");
     if (!pal || !pal.colors) return;
 
     for (const c of pal.colors) {
-      const div = document.createElement("div");
-      div.className = "saved-color";
-      div.innerHTML = `
-        <div class="swatch" style="background:${c.hex};"></div>
-        <p><b>${c.name}</b></p>
-        <p>${c.hex}</p>
-        <p>rgb(${c.rgb?.r || "?"}, ${c.rgb?.g || "?"}, ${c.rgb?.b || "?"})</p>
-        <button>❌ Delete</button>
-      `;
-      div.querySelector("button").addEventListener("click", async () => {
-        const currentUser = localStorage.getItem("cc_logged_user");
-        if (!currentUser) {
-          showAlert("You must be signed in to edit colors 🍓", false);
-          return;
-        }
-        await fetchWithAuth(`/api/palettes/${id}/colors/${c.id}`, {
-          method: "DELETE",
-        });
-        showAlert("Color deleted", true);
-        loadPaletteColors();
-      });
-      savedColors.appendChild(div);
+  const div = document.createElement("div");
+  div.className = "saved-color";
+
+  // swatch
+  const swatch = document.createElement("div");
+  swatch.className = "swatch";
+  swatch.style.background = c.hex || "#000";
+
+  // name
+  const nameP = document.createElement("p");
+  const nameB = document.createElement("b");
+  nameB.textContent = c.name || ""; // 🛡️ textContent = no code execution
+  nameP.appendChild(nameB);
+
+  // hex
+  const hexP = document.createElement("p");
+  hexP.textContent = c.hex || "";
+
+  // rgb
+  const rgbP = document.createElement("p");
+  const r = c.rgb?.r ?? "?";
+  const g = c.rgb?.g ?? "?";
+  const b = c.rgb?.b ?? "?";
+  rgbP.textContent = `rgb(${r}, ${g}, ${b})`;
+
+  // delete button
+  const btn = document.createElement("button");
+  btn.textContent = "❌ Delete";
+  btn.addEventListener("click", async () => {
+    const currentUser = localStorage.getItem("cc_logged_user");
+    if (!currentUser) {
+      showAlert("You must be signed in to edit colors 🍓", false);
+      return;
     }
-  }
+    await fetchWithAuth(`/api/palettes/${id}/colors/${c.id}`, {
+      method: "DELETE",
+    });
+    showAlert("Color deleted", true);
+    loadPaletteColors();
+  });
+
+  // assemble
+  div.appendChild(swatch);
+  div.appendChild(nameP);
+  div.appendChild(hexP);
+  div.appendChild(rgbP);
+  div.appendChild(btn);
+
+  savedColors.appendChild(div);
+}
 
   paletteSelect.addEventListener("change", loadPaletteColors);
 
