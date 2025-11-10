@@ -136,6 +136,15 @@ main.card {
   color: #ff4d6d;
   margin-top: 5px;
 }
+/* 🧁 Fix: Long color names wrap nicely instead of overflowing */
+.saved-color p,
+.saved-color b {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+  max-width: 100%;
+  display: block;
+}
 
 /* 🔔 Alert popup */
 #alertBox {
