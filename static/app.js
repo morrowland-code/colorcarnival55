@@ -553,3 +553,9 @@ window.addEventListener("pageshow", () => {
     if (logoutBtn) logoutBtn.style.display = "none";
   }
 });
+// 🚫 Live protection: instantly sanitize every text box as the user types
+document.addEventListener("input", (e) => {
+  if (e.target && e.target.tagName === "INPUT" && e.target.type === "text") {
+    e.target.value = sanitizeInput(e.target.value);
+  }
+});
