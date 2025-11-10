@@ -5,31 +5,30 @@
 const API_BASE = ""; // same-origin for Flask
 // 🧼 Sanitize any text input to prevent code or tags
 // 🧼 Fully safe sanitization — blocks code, URLs, slashes, and weird symbols
+// 🧼 Strong sanitization: remove slashes and unsafe content
 function sanitizeInput(text) {
   if (typeof text !== "string") return "";
 
   let clean = text;
 
-  // 1️⃣ Strip any HTML tags
+  // 1️⃣ Strip HTML tags
   clean = clean.replace(/<[^>]*>/g, "");
 
-  // 2️⃣ Remove script-related stuff
+  // 2️⃣ Block any script or JS-like content
   clean = clean.replace(/script|on\w+\s*=|javascript:/gi, "");
 
-  // 3️⃣ Block URLs (http, https, ftp, file, www)
+  // 3️⃣ Remove links (http, https, ftp, www)
   clean = clean.replace(/\b(?:https?|ftp|file):\/\/\S+/gi, "");
   clean = clean.replace(/\bwww\.\S+/gi, "");
 
-  // 4️⃣ Remove slashes and backslashes (to prevent path tricks)
-  clean = clean.replace(/[\\/]/g, ""); // removes / and \
+  // 4️⃣ 🚫 Remove *all forward and backslashes* — even doubled ones
+  clean = clean.replace(/[\\/]+/g, "");  // completely removes slashes
 
-  // 5️⃣ Remove dangerous or control characters
+  // 5️⃣ Remove dangerous symbols and invisible characters
   clean = clean.replace(/[{}<>$]/g, "");
-
-  // 6️⃣ Prevent invisible unicode chars
   clean = clean.replace(/[\u200B-\u200F\uFEFF]/g, "");
 
-  // 7️⃣ Trim spaces
+  // 6️⃣ Trim extra spaces
   return clean.trim();
 }
 // =============== THEME HANDLER ===============
