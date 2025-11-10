@@ -4,16 +4,24 @@
 // ===================== CONFIG =====================
 const API_BASE = ""; // same-origin for Flask
 // 🧼 Sanitize any text input to prevent code or tags
+// 🧼 Sanitize text but keep it human-readable (no HTML entities)
 function sanitizeInput(text) {
   if (typeof text !== "string") return "";
-  // remove HTML tags, script words, and encoded attempts
-  return text
-    .replace(/</g, "")
-    .replace(/>/g, "")
-    .replace(/script/gi, "")
-    .replace(/&/g, "&amp;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
+
+  // 1️⃣ Remove all HTML tags
+  let clean = text.replace(/<[^>]*>/g, "");
+
+  // 2️⃣ Block "script", "javascript:", and event handlers like onerror=
+  clean = clean.replace(/script|on\w+=|javascript:/gi, "");
+
+  // 3️⃣ Block URLs and domains (anything that looks like a link)
+  clean = clean.replace(/https?:\/\/\S+|www\.\S+/gi, "");
+
+  // 4️⃣ Strip dangerous symbols only if they're part of code-like input
+  clean = clean.replace(/[{}<>$]/g, "");
+
+  // 5️⃣ Trim whitespace
+  return clean.trim();
 }
 // =============== THEME HANDLER ===============
 // Save the selected theme and apply it across pages
