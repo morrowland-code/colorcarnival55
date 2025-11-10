@@ -4,26 +4,32 @@
 // ===================== CONFIG =====================
 const API_BASE = ""; // same-origin for Flask
 // 🧼 Sanitize any text input to prevent code or tags
-// 🧼 Sanitize text safely for all forms and palette names
+// 🧼 Fully safe sanitization — blocks code, URLs, slashes, and weird symbols
 function sanitizeInput(text) {
   if (typeof text !== "string") return "";
 
-  // 1️⃣ Remove all HTML tags
-  let clean = text.replace(/<[^>]*>/g, "");
+  let clean = text;
 
-  // 2️⃣ Block "script", "javascript:", and event handlers like onerror=
-  clean = clean.replace(/script|on\w+=|javascript:/gi, "");
+  // 1️⃣ Strip any HTML tags
+  clean = clean.replace(/<[^>]*>/g, "");
 
-  // 3️⃣ Block URLs and domains
-  clean = clean.replace(/https?:\/\/\S+|www\.\S+/gi, "");
+  // 2️⃣ Remove script-related stuff
+  clean = clean.replace(/script|on\w+\s*=|javascript:/gi, "");
 
-  // 4️⃣ Remove slashes to prevent path tricks
-  clean = clean.replace(/[\\/]/g, ""); // ✅ removes / and \
+  // 3️⃣ Block URLs (http, https, ftp, file, www)
+  clean = clean.replace(/\b(?:https?|ftp|file):\/\/\S+/gi, "");
+  clean = clean.replace(/\bwww\.\S+/gi, "");
 
-  // 5️⃣ Remove other risky symbols
+  // 4️⃣ Remove slashes and backslashes (to prevent path tricks)
+  clean = clean.replace(/[\\/]/g, ""); // removes / and \
+
+  // 5️⃣ Remove dangerous or control characters
   clean = clean.replace(/[{}<>$]/g, "");
 
-  // 6️⃣ Trim whitespace
+  // 6️⃣ Prevent invisible unicode chars
+  clean = clean.replace(/[\u200B-\u200F\uFEFF]/g, "");
+
+  // 7️⃣ Trim spaces
   return clean.trim();
 }
 // =============== THEME HANDLER ===============
